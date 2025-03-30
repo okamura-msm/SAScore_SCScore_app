@@ -78,7 +78,7 @@ def load_scscore():
 sc_model = load_scscore()
 
 # SCScoreを1〜10にスケーリング
-def rescale_scscore(score, old_min=1.0, old_max=6.0, new_min=1.0, new_max=10.0):
+def rescale_scscore(score, old_min=1.0, old_max=5.0, new_min=1.0, new_max=10.0):
     score = float(score)
     scaled = (score - old_min) / (old_max - old_min) * (new_max - new_min) + new_min
     return max(min(scaled, new_max), new_min)
