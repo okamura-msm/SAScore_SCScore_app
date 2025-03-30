@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from rdkit import Chem
-# from rdkit.Chem import Draw
+from rdkit.Chem import Draw
 from rdkit.Chem import Descriptors
 from sascorer import calculateScore
 from scscore_numpy import SCScorer
@@ -128,8 +128,8 @@ if input_method == "SMILES を直接入力":
 
         st.subheader("分子構造（スコア付き）")
         legends = [f"SA: {sa:.2f}, SC: {sc:.2f}" for _, sa, _, sc in data]
-        # img = Draw.MolsToGridImage(mols, legends=legends, subImgSize=(300,300), molsPerRow=6)
-        # st.image(img)
+        img = Draw.MolsToGridImage(mols, legends=legends, subImgSize=(300,300), molsPerRow=6)
+        st.image(img)
 
 elif input_method == "CSVファイルをアップロード":
     uploaded_file = st.file_uploader("CSVファイルを選択（SMILES列を含む必要あり）")
