@@ -17,16 +17,16 @@
 ```
 synthetic-accessibility-app/
 ├── app/
-│   ├── SAscore_app.py          # Streamlitアプリ本体
-│   ├── sascorer.py             # SAScore計算用モジュール
-│   ├── scscore_numpy.py        # SCScore（NumPy実装）
-│   ├── fpscores.pkl.gz         # SAScore用の部分構造スコア辞書
-│   └── model_files/            # （オプション）SCScoreの学習済モデル
-├── sample_data/
-│   └── demo_molecules.csv      # デモ用SMILES一覧（準備中）
-├── requirements.txt            # 必要なPythonパッケージ
-├── LICENSE                     # ライセンス（MIT）
-└── README.md                   # このファイル
+│   ├── score_app.py              ← Streamlitアプリ本体
+│   ├── sascorer.py               ← SAScoreのスクリプト
+│   ├── scscore_numpy.py          ← SCScoreスタンドアロンモデル
+│   ├── fpscores.pkl.gz           ← SAScore用の頻度データ
+│   └── model/
+│       └── model.ckpt-10654.as_numpy.pickle  ← SCScoreモデル
+├── requirements.txt              ← Python依存ライブラリ
+├── packages.txt                  ← APTパッケージ依存（libXrender）
+├── LICENSE
+└── README.md
 ```
 
 ## インストール手順
@@ -49,7 +49,7 @@ pip install rdkit-pypi
 
 ### 3. Streamlitアプリを実行
 ```bash
-streamlit run app/SAscore_app.py
+streamlit run app/score_app.py
 ```
 
 ---
@@ -81,7 +81,5 @@ Reaxys反応データに基づき、ニューラルネットが「必要な合�
 
 ## 作成者
 
-作成者：[あなたの名前またはGitHubアカウント]
-
-フィードバックや改善案も歓迎です！
+作成者：[okamura-msm]
 
