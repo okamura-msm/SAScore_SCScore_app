@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
 from rdkit import Chem
-from rdkit.Chem import Descriptors, Draw
-from PIL import Image
-from io import BytesIO
+from rdkit.Chem import Draw
+from rdkit.Chem import Descriptors
 from sascorer import calculateScore
 from scscore_numpy import SCScorer
 
+# ページ設定
 st.set_page_config(page_title="合成容易性スコア比較", layout="wide")
 st.title("合成容易性スコア比較アプリ（SAScore / SCScore）")
 
@@ -47,15 +47,28 @@ with st.expander("🔎 SAScore / SCScoreとは？（クリックで開く）"):
 
 ### 🎯 比較まとめ
 
-| 特性        | SAScore      | SCScore      |
-|-------------|--------------|--------------|
-| 観点        | 構造の見た目・頻度    | 合成経路の複雑さ     |
-| スコア範囲     | 1〜10（低いほど容易） | 1〜10（低いほど容易） |
-| 計算速度      | ◎ 非常に高速      | ◯ 中程度        |
-| 合成現実性への対応 | △（構造偏重）      | ◯（経路を考慮）     |
-| 向いている用途   | 初期スクリーニング    | 詳細評価・最終絞り込み  |
+| 特性 | SAScore | SCScore |
+|------|---------|---------|
+| 観点 | 構造の見た目・頻度 | 合成経路の複雑さ |
+| スコア範囲 | 1〜10（低いほど容易） | 1〜10（低いほど容易） |
+| 計算速度 | ◎ 非常に高速 | ◯ 中程度 |
+| 合成現実性への対応 | △（構造偏重） | ◯（経路を考慮） |
+| 向いている用途 | 初期スクリーニング | 詳細評価・最終絞り込み |
 """)
 
+st.markdown("""
+**SA スコアの指標:**
+- **1.0 ～ 3.0:** 合成容易
+- **3.0 ～ 6.0:** 合成中程度
+- **6.0 ～ 10.0:** 合成困難
+
+**SC スコアの指標（リスケール済）:**
+- **1.0 ～ 3.0:** 合成容易
+- **3.0 ～ 6.0:** 合成中程度
+- **6.0 ～ 10.0:** 合成困難
+""")
+
+# SCScoreモデル読み込み
 @st.cache_resource
 def load_scscore():
     model = SCScorer()
@@ -64,11 +77,13 @@ def load_scscore():
 
 sc_model = load_scscore()
 
-def rescale_scscore(score, old_min=1.0, old_max=6.0, new_min=1.0, new_max=10.0):
+# SCScoreを1〜10にスケーリング
+def rescale_scscore(score, old_min=1.0, old_max=5.0, new_min=1.0, new_max=10.0):
     score = float(score)
     scaled = (score - old_min) / (old_max - old_min) * (new_max - new_min) + new_min
     return max(min(scaled, new_max), new_min)
 
+# スコア計算関数
 def calculate_scores(smiles):
     try:
         mol = Chem.MolFromSmiles(smiles)
@@ -76,10 +91,11 @@ def calculate_scores(smiles):
         sc_score_raw = sc_model.get_score_from_smi(smiles)[1]
         sc_score = rescale_scscore(sc_score_raw)
         mw = Descriptors.MolWt(mol)
-        return sa_score, sc_score, mw, mol
+        return sa_score, sc_score, mw
     except:
-        return None, None, None, None
+        return None, None, None
 
+# 色分け関数（SAとSC共通に）
 def highlight_score(val):
     if isinstance(val, (int, float)):
         if val < 3.0:
@@ -90,22 +106,7 @@ def highlight_score(val):
             return 'background-color: red'
     return ''
 
-def safe_mol_to_image(mol, legend=None):
-    try:
-        return Draw.MolToImage(mol, size=(300, 300), legend=legend)
-    except Exception as e:
-        print(f"[Warning] MolToImage failed: {e}")
-        return Image.new('RGB', (300, 300), color=(255, 255, 255))
-
-def mols_to_image_grid(mols, legends, mols_per_row=6):
-    images = [safe_mol_to_image(mol, legend=legend) for mol, legend in zip(mols, legends)]
-    rows = [images[i:i + mols_per_row] for i in range(0, len(images), mols_per_row)]
-    full_img = Image.new('RGB', (300 * mols_per_row, 300 * len(rows)), color=(255, 255, 255))
-    for row_idx, row_imgs in enumerate(rows):
-        for col_idx, img in enumerate(row_imgs):
-            full_img.paste(img, (300 * col_idx, 300 * row_idx))
-    return full_img
-
+# 入力
 input_method = st.radio("入力方法を選択:", ("SMILES を直接入力", "CSVファイルをアップロード"))
 
 if input_method == "SMILES を直接入力":
@@ -115,21 +116,20 @@ if input_method == "SMILES を直接入力":
         data = []
         mols = []
         for smi in smiles_list:
-            sa, sc, mw, mol = calculate_scores(smi)
+            sa, sc, mw = calculate_scores(smi)
             if sa is not None:
                 data.append((smi, sa, mw, sc))
-                mols.append(mol)
+                mols.append(Chem.MolFromSmiles(smi))
 
         df = pd.DataFrame(data, columns=["SMILES", "SA Score", "Molecular Weight", "SC Score"])
         st.dataframe(df.style
             .applymap(highlight_score, subset=["SA Score"])
             .applymap(highlight_score, subset=["SC Score"]))
 
-        if mols:
-            st.subheader("分子構造（スコア付き）")
-            legends = [f"SA: {sa:.2f}, SC: {sc:.2f}" for _, sa, _, sc in data]
-            img = mols_to_image_grid(mols, legends)
-            st.image(img)
+        st.subheader("分子構造（スコア付き）")
+        legends = [f"SA: {sa:.2f}, SC: {sc:.2f}" for _, sa, _, sc in data]
+        img = Draw.MolsToGridImage(mols, legends=legends, subImgSize=(300,300), molsPerRow=6)
+        st.image(img)
 
 elif input_method == "CSVファイルをアップロード":
     uploaded_file = st.file_uploader("CSVファイルを選択（SMILES列を含む必要あり）")
@@ -142,21 +142,21 @@ elif input_method == "CSVファイルをアップロード":
             mols = []
             for i, row in df_in.iterrows():
                 smi = row["SMILES"]
-                sa, sc, mw, mol = calculate_scores(smi)
+                sa, sc, mw = calculate_scores(smi)
                 if sa is not None:
                     df_out.append((smi, sa, mw, sc))
-                    mols.append(mol)
+                    mols.append(Chem.MolFromSmiles(smi))
 
             df = pd.DataFrame(df_out, columns=["SMILES", "SA Score", "Molecular Weight", "SC Score"])
             st.dataframe(df.style
                 .applymap(highlight_score, subset=["SA Score"])
                 .applymap(highlight_score, subset=["SC Score"]))
 
-            if mols:
-                st.subheader("分子構造（スコア付き）")
-                legends = [f"SA: {sa:.2f}, SC: {sc:.2f}" for _, sa, _, sc in df_out]
-                img = mols_to_image_grid(mols, legends)
-                st.image(img)
+            st.subheader("分子構造（スコア付き）")
+            legends = [f"SA: {sa:.2f}, SC: {sc:.2f}" for _, sa, _, sc in df_out]
+            img = Draw.MolsToGridImage(mols, legends=legends, subImgSize=(300,300), molsPerRow=6)
+            st.image(img)
 
+            # ダウンロードリンク
             csv = df.to_csv(index=False).encode('utf-8')
             st.download_button("結果をCSVでダウンロード", csv, "scores.csv", "text/csv")
