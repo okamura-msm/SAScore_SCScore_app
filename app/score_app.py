@@ -90,8 +90,15 @@ def highlight_score(val):
             return 'background-color: red'
     return ''
 
+def safe_mol_to_image(mol, legend=None):
+    try:
+        return Draw.MolToImage(mol, size=(300, 300), legend=legend)
+    except Exception as e:
+        print(f"[Warning] MolToImage failed: {e}")
+        return Image.new('RGB', (300, 300), color=(255, 255, 255))
+
 def mols_to_image_grid(mols, legends, mols_per_row=6):
-    images = [Draw.MolToImage(mol, size=(300, 300), legend=legend) for mol, legend in zip(mols, legends)]
+    images = [safe_mol_to_image(mol, legend=legend) for mol, legend in zip(mols, legends)]
     rows = [images[i:i + mols_per_row] for i in range(0, len(images), mols_per_row)]
     full_img = Image.new('RGB', (300 * mols_per_row, 300 * len(rows)), color=(255, 255, 255))
     for row_idx, row_imgs in enumerate(rows):
