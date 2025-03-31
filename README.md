@@ -61,6 +61,7 @@ streamlit run app/score_app.py
 
 元論文：
 - Peter Ertl and Greg Landrum (2010), [J. Med. Chem.]
+- [https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8]
 
 ---
 
@@ -70,6 +71,7 @@ Reaxys反応データに基づき、ニューラルネットが「必要な合�
 
 元論文：
 - Coley et al., 2018（MIT） [https://github.com/connorcoley/scscore]
+- [https://pubs.acs.org/doi/10.1021/acs.jcim.7b00622]
 
 ---
 
