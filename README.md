@@ -33,7 +33,7 @@ synthetic-accessibility-app/
 
 ### 1. リポジトリをクローン
 ```bash
-git clone https://github.com/yourusername/synthetic-accessibility-app.git
+git clone https://github.com/okamura-msm/SAScore_SCScore_app.git
 cd synthetic-accessibility-app
 ```
 
