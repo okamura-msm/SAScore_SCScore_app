@@ -104,7 +104,7 @@ def calculateScore(m):
 
   # need to transform "raw" value into scale between 1 and 10
   min = -4.0
-  max = 3.2
+  max = 2.5
   sascore = 11. - (sascore - min + 1) / (max - min) * 9.
 
   # smooth the 10-end
