@@ -34,7 +34,7 @@ synthetic-accessibility-app/
 ### 1. リポジトリをクローン
 ```bash
 git clone https://github.com/okamura-msm/SAScore_SCScore_app.git
-cd synthetic-accessibility-app
+cd SAScore_SCScore_app
 ```
 
 ### 2. 必要なライブラリをインストール
