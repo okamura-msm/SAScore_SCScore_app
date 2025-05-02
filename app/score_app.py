@@ -1,3 +1,7 @@
+# This script includes portions of code from:
+# https://github.com/grzsko/ASAP/blob/main/scorers/scscore_numpy.py
+# Originally licensed under the MIT License.
+
 import streamlit as st
 import pandas as pd
 from rdkit import Chem
